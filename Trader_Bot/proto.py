@@ -1,20 +1,50 @@
+from re import match
 """
-* необходимо юбеспечить проверку вводимых данных
+* необходимо обеспечить проверку вводимых данных
+
+Если использовать программу для себя, то известно какие данные нужно ввести.
+	если вместо RUB/EXM будет введено [rub/exm], [123/456], [100]
+	также пара добавляется в список pirs, а что если она вобще некоректна
+	даже если ее формат с виду коректен BLA/MUDOFON
+	Например: Минимальная и максимальная длина len(pains[i]) + регистер символов
+
 * необходимо улучшить выводимые сообщения, чтобы было коротко и понятно
-* думаю все это для прототипа сгодится
-* думаю здесь должно быть две программы Клиент и Сервер
-* думаю необходимы реальные данные, это API - Биржи
-* думаю еще много чего нужно...
 """
+
+# start ----------------- ЗДЕСЬ БЫЛИ ИЗМЕНЕНИЯ ------------------------ #
+
+############################## LIBRARY ##################################
+# function для проверки корректности пары
+def isvalid_pair(pair):
+	# если длина корректна length True
+	length = len(pair) > 6 and len(pair) < 20
+	# если формат корректен format_correctly True
+	format_correctly = match(r'[A-Z/]{6,20}', pair)
+
+	if length and format_correctly:
+		return True
+	else:
+		return False
+############################# END LIBRARY ###############################
+
 # Список пар
 pairs = [
-	'RUB/EXM', 'BTC/SMART', 'ETH/CRON',
-	'RUB/EXM', 'BTC/SMART', 'ETH/CRON',
-	'RUB/EXM', 'BTC/SMART', 'ETH/CRON',
+	'EXM/RUB',  'SMART/RUB', 'XRP/RUB',
+	'ALGO/RUB', 'BTT/RUB',   'DAI/RUB',
+	'ONG/RUB',  'ONT/RUB',   'TRX/RUB',
+    'USDT/RUB', 'XLM/RUB',   'LSK/RUB',
 ]
 
 # Иоформация о пользователе
-user_info = {} 
+user_info = {
+	'pair_name':    '',   # пара
+	'buy_currency': '',   # что покупаем
+	'use_currency': '',   # за что покупаем
+	'status':       '',   # статус пользователя
+	'action':       '',   # действие sell/buy
+	'balance':       0,   # общий баланс
+	'current_price': 0.0, # текущая цена вылюты
+} 
 
 # Формируем сообщение
 message = """
@@ -36,13 +66,31 @@ for i in range( len(pairs) ):
 	if (i + 1) % 4 == 0:
 		print()
 
-# Ввод названя пары + удалить пробелы
-user_info['pair_name'] = input('\n\n Пара: ').strip()
+"""
++ Ввод названя пары, вводить можно только такой формат EXM/RUB и exm/rub
++ удалить пробелы strip
++ переводим в вегхний регистер upper
+"""
+user_info['pair_name'] = input('\n\n Пара: ').strip().upper()
 
-# Если пары нет в списке pairs, то добавляем
-if user_info['pair_name'] not in pairs:
-	pairs.append(user_info['pair_name'])
+# Если пара валидная в ней нет некорректных символов
+if isvalid_pair(user_info['pair_name']):
+	# Если пары нет в списке pairs, то добавляем
+	if user_info['pair_name'] not in pairs:
+		pairs.append(user_info['pair_name'])
+else:
+	raise Exception('Введенная пара не корректна')
 
+# Разбиваем пару 
+break_pair = user_info['pair_name'].split('/')
+
+user_info['buy_currency'] = break_pair[0] # вылюта которую покупаем 
+user_info['use_currency'] = break_pair[1] # вылюта которую используем для покупки
+
+# end ----------------- ДАЛЬШЕ НЕТ ИЗМЕНЕНИЙ ------------------------ #
+print(pairs)
+print(user_info)
+input('---------------------------------------------------------------')
 # Формируем сообщение
 message = """
  ЗАПРОС: 2
