@@ -38,6 +38,10 @@ def detect_status(balance):
 	return status
 ############################# END LIBRARY ###############################
 
+fail_input_text  = ''
+fail_input_int   = 0
+fail_input_float = 0.0
+
 # Список пар
 pairs = [
 	'EXM/RUB',  'SMART/RUB', 'XRP/RUB',
@@ -55,6 +59,7 @@ user_info = {
 	'action':       '',   # действие sell/buy
 	'balance':       0,   # общий баланс
 	'current_price': 0.0, # текущая цена вылюты
+	'min_deal'     : 0.0, # минимальная величина сделки
 } 
 
 # Формируем сообщение
@@ -86,10 +91,10 @@ for i in range( len(pairs) ):
 + переводим в вегхний регистер upper
 + если пользователь нажал интер не вводя ничего, присваиваем FAIL/IN' неудачный ввод
 """
-user_info['pair_name'] = input('\n\n Пара: ').strip().upper() or 'fail/in'
+user_info['pair_name'] = input('\n\n Пара: ').strip().upper() or fail_input_text
 
 # Если пара валидная в ней нет некорректных символов
-if isvalid_pair(user_info['pair_name']) and user_info['pair_name'] != 'fail/in':
+if isvalid_pair(user_info['pair_name']) and user_info['pair_name'] != fail_input_text:
 	# Если пары нет в списке pairs, то добавляем
 	if user_info['pair_name'] not in pairs:
 		pairs.append(user_info['pair_name'])
@@ -112,10 +117,10 @@ message = """
 print(message)
 
 # Ввод суммы
-user_info['balance'] = int(input(' Сумма: ') or 0)
+user_info['balance'] = int(input(' Сумма: ') or fail_input_int)
 
-# Если баланс равен нулю
-if user_info['balance'] == 0:
+# если данных нет
+if user_info['balance'] == fail_input_int:
 	raise Exception('Сумма должна быть больше ' + str(user_info['balance']))
 
 # Определяем статус пользователя
@@ -141,10 +146,10 @@ message = """
 print(message)
 
 # Ввод действия buy или sell + удалить пробелы
-action = input(' Действие: ').strip().lower() or 'fail/in'
+action = input(' Действие: ').strip().lower() or fail_input_text
 
 # если выбрана корректная опрерация
-if action == 'sell' or action == 'buy' and action != 'fail/in':
+if action == 'sell' or action == 'buy' and action != fail_input_text:
 	user_info['action'] = action
 else:
 	raise Exception('Действие не корректно ' + action)
@@ -155,13 +160,13 @@ print('\n ЗАПРОС: 4\n Введите биржевую цену ', end='')
 
 # Ввод текущей цены buy или sell
 if user_info['action'] == 'buy':
-	current_price = float(input('"ПОКУПКИ" на данный момент: ') or 0.0)
+	current_price = float(input('"ПОКУПКИ" на данный момент: ') or fail_input_float)
 
 if user_info['action'] == 'sell':
-	current_price = float(input('"ПРОДАЖИ" на данный момен: ') or 0.0)
+	current_price = float(input('"ПРОДАЖИ" на данный момен: ') or fail_input_float)
 
-
-if current_price == 0:
+# если данных нет
+if current_price == fail_input_float:
 	raise Exception('Цена должна быть больше ' + str(current_price))
 
 user_info['current_price'] = current_price
@@ -182,8 +187,25 @@ message = """
 
 # Вывод введенной информации
 print(message)
+# ----------------------------------------------------------------------------------
+# Юра - здесь твой выход
 
-for el in user_info:
-	print(el, ':', user_info[el])
+print('\n ЗАПРОС: 5\n Минимальная величина сделки ', end='')
 
-# Кода становится слишком много
+user_info['min_deal'] = float(input(' Размер сделки ') or fail_input_float)
+
+# если данных нет
+if user_info['min_deal'] == fail_input_float:
+	raise Exception('Минимальная величина должна быть больше ' + user_info['min_deal'])
+
+"""
+ Программа расчитывает сперва,
+ сколько минимально возможных сделок можно осуществить
+ по заданной цене current_price на имеющийся баланс balance
+ minorders = balance/current_price
+ округляем, отбросив дробную часть и получаем число - количество минимально возможных ордеров
+ которые можно выставить на эту сумму balance
+ далее в зависимости от числа ордеров, программа выберет шаг с которым будут выставляться ордера.
+"""
+
+# Начинай!
