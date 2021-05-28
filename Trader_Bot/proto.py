@@ -1,12 +1,8 @@
 from re import match
-"""
-* подумать о вводимых данных дополнительно
-* необходимо улучшить выводимые сообщения, чтобы было коротко и понятно
-* необходимо вычислить повторяющиеся участки кода
-* необходимо создать библиотеку в отдельном файле
-"""
 
 ############################## LIBRARY ##################################
+class TraderBotException(Exception):
+	pass
 # function проверка корректности пары
 def isvalid_pair(pair):
 	# если длина корректна length True
@@ -18,6 +14,7 @@ def isvalid_pair(pair):
 		return True
 	else:
 		return False
+
 # futnction установить статус пользователя 
 def detect_status(balance):
 	status = ''
@@ -36,11 +33,17 @@ def detect_status(balance):
 	elif balance >= 1111111:
 		status = 'TraderKing'
 	return status
+
+# funtion распечатать пары
+def print_pairs(pairs):
+	for i in range( len(pairs) ):
+		print(" {pair:<10s} ".format(pair=pairs[i]), end='')	
+		if (i + 1) % 4 == 0:
+			print()
 ############################# END LIBRARY ###############################
 
-fail_input_text  = ''
-fail_input_int   = 0
-fail_input_float = 0.0
+bad_text  = ''
+bad_num   = 0
 
 # Список пар
 pairs = [
@@ -52,14 +55,15 @@ pairs = [
 
 # Иоформация о пользователе
 user_info = {
-	'pair_name':    '',   # пара
-	'buy_currency': '',   # что покупаем
-	'use_currency': '',   # за что покупаем
-	'status':       '',   # статус пользователя
-	'action':       '',   # действие sell/buy
-	'balance':       0,   # общий баланс
-	'current_price': 0.0, # текущая цена вылюты
-	'min_deal'     : 0.0, # минимальная величина сделки
+	'pair_name':     '', # пара
+	'currency':      '', # что покупаем или продаем
+	'use_currency':  '', # за что покупаем
+	'status':        '', # статус пользователя
+	'action':        '', # действие sell/buy
+	'balance':        0, # общий баланс
+	'current_price':  0, # текущая цена вылюты
+	'min_deal'     :  0, # минимальная величина сделки
+	'total_deals'  :  0, # min количество возможных сделок
 } 
 
 # Формируем сообщение
@@ -76,36 +80,24 @@ message = """
 # Выводим сообщение
 print(message)
 
-""" 
-Вывод имеющихся пар
-pair:<10s означает выровнять EXM/RUB : по < правому краю с шириной поля 10 символов
-"""
-for i in range( len(pairs) ):
-	print(" {pair:<10s} ".format(pair=pairs[i]), end='')	
-	if (i + 1) % 4 == 0:
-		print()
+#Вывод имеющихся пар
+print_pairs(pairs);
 
-"""
-+ Ввод названия пары, вводить можно только такой формат EXM/RUB и exm/rub
-+ удалить пробелы strip
-+ переводим в вегхний регистер upper
-+ если пользователь нажал интер не вводя ничего, присваиваем FAIL/IN' неудачный ввод
-"""
-user_info['pair_name'] = input('\n\n Пара: ').strip().upper() or fail_input_text
+pair_name = input('\n\n Пара: ').strip().upper() or bad_text
 
-# Если пара валидная в ней нет некорректных символов
-if isvalid_pair(user_info['pair_name']) and user_info['pair_name'] != fail_input_text:
-	# Если пары нет в списке pairs, то добавляем
-	if user_info['pair_name'] not in pairs:
-		pairs.append(user_info['pair_name'])
+if isvalid_pair(pair_name) and pair_name != bad_text:
+	if pair_name not in pairs:
+		pairs.append(pair_name)
 else:
-	raise Exception('Введенная пара не корректна')
+	raise TraderBotException('Введенная пара не корректна')
+
+user_info['pair_name'] = pair_name
 
 # Разбиваем пару 
 break_pair = user_info['pair_name'].split('/')
 
-user_info['buy_currency'] = break_pair[0] # вылюта которую покупаем 
-user_info['use_currency'] = break_pair[1] # вылюта которую используем для покупки
+user_info['currency']      = break_pair[0] # вылюта  
+user_info['use_currency']  = break_pair[1] # вылюта которую используем для покупки
 
 
 # Формируем сообщение
@@ -117,20 +109,15 @@ message = """
 print(message)
 
 # Ввод суммы
-user_info['balance'] = int(input(' Сумма: ') or fail_input_int)
+user_info['balance'] = int(input(' Сумма: ') or bad_num)
 
 # если данных нет
-if user_info['balance'] == fail_input_int:
-	raise Exception('Сумма должна быть больше ' + str(user_info['balance']))
+if user_info['balance'] == bad_num:
+	raise TraderBotException('Сумма должна быть больше ' + str(user_info['balance']))
 
 # Определяем статус пользователя
 user_info['status'] = detect_status(user_info['balance'])
 
-""" 
-+ Формируем сообщение
-+ в тексте будет найден шаблон {balance}
-+ balance=user_info['balance'] будет подставленно значение по имени аргумента
-"""
 message = """
  Ваш баланс: {balance} {currency}.
 
@@ -146,13 +133,13 @@ message = """
 print(message)
 
 # Ввод действия buy или sell + удалить пробелы
-action = input(' Действие: ').strip().lower() or fail_input_text
+action = input(' Действие: ').strip().lower() or bad_text
 
 # если выбрана корректная опрерация
-if action == 'sell' or action == 'buy' and action != fail_input_text:
+if action == 'sell' or action == 'buy' and action != bad_text:
 	user_info['action'] = action
 else:
-	raise Exception('Действие не корректно ' + action)
+	raise TraderBotException('Действие не корректно ' + action)
 
 user_info['action'] = action
 
@@ -160,14 +147,14 @@ print('\n ЗАПРОС: 4\n Введите биржевую цену ', end='')
 
 # Ввод текущей цены buy или sell
 if user_info['action'] == 'buy':
-	current_price = float(input('"ПОКУПКИ" на данный момент: ') or fail_input_float)
+	current_price = float(input('"ПОКУПКИ" на данный момент: ') or bad_num)
 
 if user_info['action'] == 'sell':
-	current_price = float(input('"ПРОДАЖИ" на данный момен: ') or fail_input_float)
+	current_price = float(input('"ПРОДАЖИ" на данный момен: ') or bad_num)
 
 # если данных нет
-if current_price == fail_input_float:
-	raise Exception('Цена должна быть больше ' + str(current_price))
+if current_price == bad_num:
+	raise TraderBotException('Цена должна быть больше ' + str(current_price))
 
 user_info['current_price'] = current_price
 
@@ -190,22 +177,27 @@ print(message)
 # ----------------------------------------------------------------------------------
 # Юра - здесь твой выход
 
-print('\n ЗАПРОС: 5\n Минимальная величина сделки ', end='')
+print('\n ЗАПРОС: 5\n Минимальная величина сделки \n')
 
-user_info['min_deal'] = float(input(' Размер сделки ') or fail_input_float)
+user_info['min_deal'] = float(input(' Размер сделки ') or bad_num)
 
 # если данных нет
-if user_info['min_deal'] == fail_input_float:
-	raise Exception('Минимальная величина должна быть больше ' + user_info['min_deal'])
+if user_info['min_deal'] == bad_num:
+	raise TraderBotException('Минимальная величина должна быть больше ' + user_info['min_deal'])
 
-"""
- Программа расчитывает сперва,
- сколько минимально возможных сделок можно осуществить
- по заданной цене current_price на имеющийся баланс balance
- minorders = balance/current_price
- округляем, отбросив дробную часть и получаем число - количество минимально возможных ордеров
- которые можно выставить на эту сумму balance
- далее в зависимости от числа ордеров, программа выберет шаг с которым будут выставляться ордера.
-"""
+user_info['total_deals'] = user_info['balance'] // user_info['min_deal']
 
-# Начинай!
+print('\n\n Информация для отладки\n')
+print(
+	' Волютная пара:               {}\n'.format(user_info['pair_name']),
+	'Валюта:                      {}\n'.format(user_info['currency']),
+	'Валюта для операций:         {}\n'.format(user_info['use_currency']),
+	'Статус пользователя:         {}\n'.format(user_info['status']),
+	'Действие buy/sell:           {}\n'.format(user_info['action']),
+	'Баланс:                      {} {}\n'.format(user_info['balance'], user_info['use_currency']),
+	'Текущая цена:                {}\n'.format(user_info['current_price']),
+	'Минимальна величина сделки:  {}\n'.format(user_info['min_deal']),
+	'Количество возможных сделок: {} ордеров\n'.format(user_info['total_deals']),
+)
+for el in user_info:
+	print(' ' + el, ':', user_info[el])
