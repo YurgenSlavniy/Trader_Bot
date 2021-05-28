@@ -185,7 +185,7 @@ user_info['min_deal'] = float(input(' Размер сделки ') or bad_num)
 if user_info['min_deal'] == bad_num:
 	raise TraderBotException('Минимальная величина должна быть больше ' + user_info['min_deal'])
 
-user_info['total_deals'] = user_info['balance'] // user_info['min_deal']
+user_info['total_deals'] = user_info['balance'] // user_info['current_price']
 
 print('\n\n Информация для отладки\n')
 print(
