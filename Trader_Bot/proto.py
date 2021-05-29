@@ -63,7 +63,7 @@ user_info = {
 	'balance':        0, # общий баланс
 	'current_price':  0, # текущая цена вылюты
 	'min_deal'     :  0, # минимальная величина сделки
-	'total_deals'  :  0, # min количество возможных сделок
+	'min_deals':      0, # min количество возможных сделок
 } 
 
 # Формируем сообщение
@@ -185,7 +185,10 @@ user_info['min_deal'] = float(input(' Размер сделки ') or bad_num)
 if user_info['min_deal'] == bad_num:
 	raise TraderBotException('Минимальная величина должна быть больше ' + user_info['min_deal'])
 
-user_info['total_deals'] = user_info['balance'] // user_info['current_price']
+user_info['min_deals'] = user_info['balance'] // user_info['current_price']
+
+
+# Начни от сюда - набросай что нибудь
 
 print('\n\n Информация для отладки\n')
 print(
@@ -197,7 +200,7 @@ print(
 	'Баланс:                      {} {}\n'.format(user_info['balance'], user_info['use_currency']),
 	'Текущая цена:                {}\n'.format(user_info['current_price']),
 	'Минимальна величина сделки:  {}\n'.format(user_info['min_deal']),
-	'Количество возможных сделок: {} ордеров\n'.format(user_info['total_deals']),
+	'Количество возможных сделок: {} ордеров\n'.format(user_info['min_deals']),
 )
 for el in user_info:
 	print(' ' + el, ':', user_info[el])
