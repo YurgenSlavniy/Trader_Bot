@@ -2,7 +2,7 @@ import requests as request
 
 """
 	Можно получить различную информацию c EXMO
-	Запустить в терминале 
+	Запустить в терминале установки библиотеки requests 
 		так pip install requirements.txt
 		или pip3 install requirements.txt
 """
