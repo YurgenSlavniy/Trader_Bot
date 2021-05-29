@@ -3,7 +3,9 @@ from re import match
 ############################## LIBRARY ##################################
 class TraderBotException(Exception):
 	pass
+
 # function проверка корректности пары
+
 def isvalid_pair(pair):
 	# если длина корректна length True
 	length = len(pair) > 6 and len(pair) < 20
@@ -16,6 +18,7 @@ def isvalid_pair(pair):
 		return False
 
 # futnction установить статус пользователя 
+
 def detect_status(balance):
 	status = ''
 	if balance < 11111:
@@ -35,6 +38,7 @@ def detect_status(balance):
 	return status
 
 # funtion распечатать пары
+
 def print_pairs(pairs):
 	for i in range( len(pairs) ):
 		print(" {pair:<10s} ".format(pair=pairs[i]), end='')	
@@ -162,15 +166,15 @@ user_info['current_price'] = current_price
 message = """
  Cобранные данные:
   Вы хотите торговать в валютной паре - {pair}
-  Вы готовы инвестировать в неё       - {balance} рублей
+  Вы готовы инвестировать в неё       - {balance} {currency}
   Ваш статус                          - {status}
-
- Подождите...
+  ...
 """.format(
 		pair=user_info['pair_name'],
 		status=user_info['status'],
 		balance=user_info['balance'],
-	)
+		currency=user_info['use_currency'],
+)
 
 # Вывод введенной информации
 print(message)
@@ -179,7 +183,7 @@ print(message)
 
 print('\n ЗАПРОС: 5\n Минимальная величина сделки \n')
 
-user_info['min_deal'] = float(input(' Размер сделки ') or bad_num)
+user_info['min_deal'] = float(input(' Размер сделки: ') or bad_num)
 
 # если данных нет
 if user_info['min_deal'] == bad_num:
