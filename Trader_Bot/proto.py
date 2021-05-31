@@ -44,6 +44,13 @@ def print_pairs(pairs):
 		print(" {pair:<10s} ".format(pair=pairs[i]), end='')	
 		if (i + 1) % 4 == 0:
 			print()
+
+def calculate_buy(user_info):
+	pass
+
+def calculate_sell(user_info):
+	pass
+
 ############################# END LIBRARY ###############################
 
 bad_text  = ''
@@ -178,8 +185,6 @@ message = """
 
 # Вывод введенной информации
 print(message)
-# ----------------------------------------------------------------------------------
-# Юра - здесь твой выход
 
 print('\n ЗАПРОС: 5\n Минимальная величина сделки \n')
 
@@ -189,22 +194,67 @@ user_info['min_deal'] = float(input(' Размер сделки: ') or bad_num)
 if user_info['min_deal'] == bad_num:
 	raise TraderBotException('Минимальная величина должна быть больше ' + user_info['min_deal'])
 
-user_info['min_total_deals'] = user_info['balance'] // user_info['current_price']
+user_info['min_total_deals'] = int(user_info['balance'] // (user_info['current_price'] * user_info['min_deal']))
 
+if user_info['action'] == 'buy':
+	# цена одной сделки
+	fixed_order_price = user_info['balance'] / user_info['min_total_deals']
 
-# Начни от сюда - набросай что нибудь
+	# количество условных едениц
+	# print('\n ЗАПРОС: 6\n Количество у.е в {}'.format(user_info['currency']))
+	# total_currency = float(input('\n Количество: ') or bad_num)
 
-print('\n\n Информация для отладки\n')
-print(
-	' Волютная пара:               {}\n'.format(user_info['pair_name']),
-	'Валюта:                      {}\n'.format(user_info['currency']),
-	'Валюта для операций:         {}\n'.format(user_info['use_currency']),
-	'Статус пользователя:         {}\n'.format(user_info['status']),
-	'Действие buy/sell:           {}\n'.format(user_info['action']),
-	'Баланс:                      {} {}\n'.format(user_info['balance'], user_info['use_currency']),
-	'Текущая цена:                {}\n'.format(user_info['current_price']),
-	'Минимальна величина сделки:  {}\n'.format(user_info['min_deal']),
-	'Количество возможных сделок: {} ордеров\n'.format(user_info['min_total_deals']),
-)
+	# минимальная стоимость условных едениц
+	# print('\n ЗАПРОС: 7\n Минимально дупустимая цена за {} {}'.format(total_currency, user_info['currency']))
+	# low_price      = float(input('\n Минимально дупустимая цена: ') or bad_num)
+	total_currency = 10
+	low_price = 0.01
+	current_price = user_info['current_price']
+
+	if current_price <= 10:
+		step = 0.01
+	if 0 < current_price <= 100:
+		step = 0.1
+	if 100 < current_price <= 1000:
+		step = 1
+
+	ideal_step = current_price / step
+
+	step_trade = (ideal_step / user_info['min_total_deals'])
+
+	newprice = current_price - step_trade
+	print(
+		' BUY: цена покупки: {:.2f} RUB  покупаю на: {:.2f} RUB {:.3f} EXM'.format(
+			newprice, fixed_order_price, fixed_order_price / newprice
+		)
+	)
+	user_info['balance'] -= fixed_order_price
+	print(' balance: ', user_info['balance'])
+	# ******************************************************************
+
+	print(
+		'\n',
+		'\n цена одной сделки: {} {}\n'.format(fixed_order_price, user_info['use_currency']),
+		'количество условных едениц {} {}\n'.format(total_currency, user_info['currency']),
+		'минимальная стоимость {} за {} {}\n'.format(low_price, total_currency, user_info['currency']),
+		'идельный шаг {}\n'.format(ideal_step),
+		'step trade {}\n'.format(step_trade),
+		'\n'
+	)
+	
+
+# print('\n\n Информация для отладки\n')
+# print(
+# 	' Волютная пара:               {}\n'.format(user_info['pair_name']),
+# 	'Валюта:                      {}\n'.format(user_info['currency']),
+# 	'Валюта для операций:         {}\n'.format(user_info['use_currency']),
+# 	'Статус пользователя:         {}\n'.format(user_info['status']),
+# 	'Действие buy/sell:           {}\n'.format(user_info['action']),
+# 	'Баланс:                      {} {}\n'.format(user_info['balance'], user_info['use_currency']),
+# 	'Текущая цена:                {}\n'.format(user_info['current_price']),
+# 	'Минимальна величина сделки:  {}\n'.format(user_info['min_deal']),
+# 	'Количество возможных сделок: {} ордеров\n'.format(user_info['min_total_deals']),
+# )
+
 for el in user_info:
 	print(' ' + el, ':', user_info[el])
