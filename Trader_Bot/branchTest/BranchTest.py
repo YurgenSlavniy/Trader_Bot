@@ -214,7 +214,8 @@ print('Мы расчитали шаг с которым будем расста�
 print('В диапазоне цены от ', user_info['current_price'], ' до ',  maxsellorder, ' будет расставлено ', sellordersvalue, ' ордеров.\n' )
 print('--- идёт генерация ордеров --- >\n')
 
-# выставляем первый ордера:
+# выставляем ордера:
+sellprofit = 0
 while sellpairvalue > 0:
 	print(
 		'SELL: количество валюты: ', user_info['min_deal'], ' ', user_info['currency'],
@@ -223,3 +224,5 @@ while sellpairvalue > 0:
 	)
 	sellpairvalue = sellpairvalue - user_info['min_deal']
 	user_info['current_price'] = user_info['current_price'] + stepsell
+	sellprofit = sellprofit + (user_info['min_deal'] * user_info['current_price'])
+print('сгенерировано ', sellordersvalue, ' ордеров на общую сумму ', sellprofit, ' ', user_info['use_currency'])
