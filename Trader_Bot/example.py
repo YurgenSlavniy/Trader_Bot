@@ -5,8 +5,8 @@ currency      = 'EXM'
 use_currency  = 'RUB'
 status        = 'babyplay'
 action        = 'buy'
-balance       = 1234.00
-current_price = 1.00
+balance       = 456
+current_price = 0.69
 
 
  # действия без длинных описаний...
@@ -39,21 +39,30 @@ print(
 
 
 # Выставляется первый ордер результат выводится пользователю:
-print('1) BUY   цена: ', current_price,' RUB, сумма ордера: ', fixorderprice,' RUB, количество покупаемой валюты: ', fixorderprice / current_price, ' EXM')
+print('1) BUY   цена: ', current_price, ' ', use_currency , 'сумма ордера: ', fixorderprice, ' ', use_currency, 'количество покупаемой валюты: ', fixorderprice / current_price, ' ', currency )
 # После выставления ордера наш баланс уменьшается на fixorderprice
 balance = balance - fixorderprice
 # Выставляем второй ордер:
 current_price = current_price - pricestep
-print('2) BUY   цена: ', current_price, ' RUB, сумма ордера: ', fixorderprice,' RUB, количество покупаемой валюты: ',fixorderprice / current_price, ' EXM')
+print('2) BUY   цена: ', current_price,  ' ', use_currency , 'сумма ордера: ', fixorderprice, ' ', use_currency, 'количество покупаемой валюты: ', fixorderprice / current_price, ' ', currency )
 # После выставления ордера наш баланс уменьшается на fixorderprice
 balance = balance - fixorderprice
 # Выставляем третий ордер:
 current_price = current_price - pricestep
-print('3) BUY   цена: ', current_price, ' RUB, сумма ордера: ', fixorderprice,' RUB, количество покупаемой валюты: ',fixorderprice / current_price, ' EXM')
+print('3) BUY   цена: ', current_price,  ' ', use_currency , 'сумма ордера: ', fixorderprice, ' ', use_currency, 'количество покупаемой валюты: ', fixorderprice / current_price, ' ', currency )
+# Выставляем четвёртый ордер:
+current_price = current_price - pricestep
+print('4) BUY   цена: ', current_price,  ' ', use_currency , 'сумма ордера: ', fixorderprice, ' ', use_currency, 'количество покупаемой валюты: ', fixorderprice / current_price, ' ', currency )
+# Выставляем слдующий ордер:
+current_price = current_price - pricestep
+print('5) BUY   цена: ', current_price,  ' ', use_currency , 'сумма ордера: ', fixorderprice, ' ', use_currency, 'количество покупаемой валюты: ', fixorderprice / current_price, ' ', currency )
+print(...)
 # И т.д пока у нас не закончится баланс balance = 0 вышли из цикла - ордера расставлены!
+
 # когда выводим пользователю получаем :
 # *) BUY   цена:  0.9919504065040651  RUB, сумма ордера:  10.0  RUB, количество покупаемой валюты:  10.081149152650728  EXM
 # цена:  0.9919504065040651  , количество покупаемой валюты:  10.081149152650728  EXM можно округлять до 4 знаков после запятой...
 
 # я тестировал работу с другими данными и забыл, что в папке репозитория работаю.
 # и пока не создам коммит, не могу переключиться на другую ветку в гит кракене
+# немного изменил вывод с использованием переменных currency, use_currency
