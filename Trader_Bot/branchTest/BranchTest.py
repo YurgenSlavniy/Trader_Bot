@@ -190,6 +190,7 @@ print('--- идёт генерация ордеров --- >\n')
 # Вариант расстановки SELL сделок:
 # сперва мы должны на всю сумму balance купить валюту currency по рыночной цене current_price
 sellpairvalue = user_info['balance'] / user_info['current_price']
+spv = sellpairvalue
 print(
 	'По рыночной цене ', user_info['current_price'], ' ', user_info['use_currency'],
 	' покупаем ', sellpairvalue, ' ', user_info['currency'],
@@ -225,4 +226,11 @@ while sellpairvalue > 0:
 	sellpairvalue = sellpairvalue - user_info['min_deal']
 	user_info['current_price'] = user_info['current_price'] + stepsell
 	sellprofit = sellprofit + (user_info['min_deal'] * user_info['current_price'])
-print('сгенерировано ', sellordersvalue, ' ордеров на общую сумму ', sellprofit, ' ', user_info['use_currency'])
+
+print('\n' 'у вас было ', user_info['balance'], ' ', user_info['use_currency'], '\n',
+	  ' на них вы купили ', spv, ' ', user_info['currency'], '\n',
+	  'сгенерировано ', sellordersvalue, ' ордеров на продажу', '\n', ' на общую сумму ', sellprofit, ' ', user_info['use_currency'], '\n\n'
+	  ' если все выставленные SELL ордера отторгуются, вы заработаете: ', sellprofit - user_info['balance'], ' ', user_info['use_currency'])
+input('для завершения программы нажмите ентер')
+
+# нашёл позицию когда расчитывает не корректно, завтра попробую сформулировать и исправить.
