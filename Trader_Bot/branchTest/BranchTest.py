@@ -165,7 +165,7 @@ user_info['min_deal'] = float(input(' Размер сделки ') or bad_num)
 if user_info['min_deal'] == bad_num:
 	raise TraderBotException('Минимальная величина должна быть больше ' + user_info['min_deal'])
 
-user_info['min_deals'] = user_info['balance'] // user_info['current_price']
+user_info['min_deals'] = user_info['balance'] // (user_info['current_price'] * user_info['min_deal'])
 
 print('\n\n Информация для отладки\n')
 print(
@@ -182,4 +182,44 @@ print(
 for el in user_info:
 	print(' ' + el, ':', user_info[el])
 
+
+
 # ПОПРОБУЮ НАКИДАТЬ ОДИН ИЗ ВАРИАНТОВ ГЕНЕРАЦИИ КОДА СЮДА
+print('--- идёт генерация ордеров --- >\n')
+
+# Вариант расстановки SELL сделок:
+# сперва мы должны на всю сумму balance купить валюту currency по рыночной цене current_price
+sellpairvalue = user_info['balance'] / user_info['current_price']
+print(
+	'По рыночной цене ', user_info['current_price'], ' ', user_info['use_currency'],
+	' покупаем ', sellpairvalue, ' ', user_info['currency'],
+	' на общую сумму ', user_info['balance'], ' ', user_info['use_currency']
+)
+# Теперь нам нужно выставить ордера на продажу.
+# зная параметр user_info['min_deal'], расчитаем число ордеров на продажу,
+# которое теперь мы можем выставить
+sellordersvalue = sellpairvalue // user_info['min_deal']
+print('Теперь можно выставить ', sellordersvalue, ' минимальных ордеров на продажу SELL \n')
+# теперь нам нужен отрезок цены на котором будут выставлены ордера,
+# для этого запросим у пользователя верхний предел цены,
+# т.е максимальную цену по которой он выставит последний минимальный ордер на продажу
+print('ЗАПРОС: 6')
+print('Напоминаем цену покупки: ', user_info['current_price'], ' ', user_info['use_currency'], ' за 1 ', user_info['currency'] )
+maxsellorder = float(input('Введите максимальную цену продажи: '))
+
+# теперь есть корридор от user_info['current_price'] до maxsellorder,
+# и мы раситываем шаг с которым будут расставлены ордера
+stepsell = (maxsellorder - user_info['current_price']) / sellordersvalue
+print('Мы расчитали шаг с которым будем расставлять ордера: ', stepsell)
+print('В диапазоне цены от ', user_info['current_price'], ' до ',  maxsellorder, ' будет расставлено ', sellordersvalue, ' ордеров.\n' )
+print('--- идёт генерация ордеров --- >\n')
+
+# выставляем первый ордера:
+while sellpairvalue > 0:
+	print(
+		'SELL: количество валюты: ', user_info['min_deal'], ' ', user_info['currency'],
+		' продаём за ', user_info['current_price'], ' ', user_info['use_currency'],
+		' на сумму ', user_info['min_deal'] * user_info['current_price'], ' ', user_info['use_currency']
+	)
+	sellpairvalue = sellpairvalue - user_info['min_deal']
+	user_info['current_price'] = user_info['current_price'] + stepsell
