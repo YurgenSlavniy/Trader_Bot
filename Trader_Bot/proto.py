@@ -74,10 +74,6 @@ def calculate_buy(user_info):
 
         user_info['balance'] = balance
 
-        current_price -= step
-        balance       -= fixed_order_price
-
-
         message = '{:<5}{} цена: {:<10f} {} Сумма ордера: {:<10f} {} Количество криптовалюты: {:<10s} {}'.format(
             count,
             user_info['action'].upper(),
@@ -89,6 +85,9 @@ def calculate_buy(user_info):
             user_info['currency']
 
         )
+
+        current_price -= step
+        balance       -= fixed_order_price
         print(message)
 
 def calculate_sell(user_info):
@@ -104,7 +103,8 @@ msg = """
   4) Биржевую цену на данный момент
   5) Количество криптовалюты в одном ордере
 
-  Если валюта присутствует в списке, последнее поле оставте пустым.
+  Если валюта присутствует в списке, последнее поле можете оставить пустым.
+  Для изменения существующего значения введите новое.
 """
 print(msg)
 
