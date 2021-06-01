@@ -44,6 +44,8 @@ print('1) BUY   цена: ', current_price, ' ', use_currency , 'сумма ор
 balance = balance - fixorderprice
 # Выставляем второй ордер:
 current_price = current_price - pricestep
+
+
 print('2) BUY   цена: ', current_price,  ' ', use_currency , 'сумма ордера: ', fixorderprice, ' ', use_currency, 'количество покупаемой валюты: ', fixorderprice / current_price, ' ', currency )
 # После выставления ордера наш баланс уменьшается на fixorderprice
 balance = balance - fixorderprice

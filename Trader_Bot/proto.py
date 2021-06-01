@@ -1,260 +1,197 @@
 from re import match
 
-############################## LIBRARY ##################################
 class TraderBotException(Exception):
-	pass
+    pass
 
-# function проверка корректности пары
+bad_text = ''
+bad_num  = 0
 
+list_currency = {
+    'EMX': 10, 'XRP': 20, 'DAI': 30, 'XLM': 40,
+    'LSK': 50, 'ONG': 60, 'ONT': 70, 'TRX': 80,
+}
+
+user_info = {}
+############################# LIBRARY ###################################
 def isvalid_pair(pair):
-	# если длина корректна length True
-	length = len(pair) > 6 and len(pair) < 20
-	# если формат корректен format_correctly True
-	format_correctly = match(r'[A-Z/]{6,20}', pair)
+    format_correctly = match(r'[A-Z/]{6,20}', pair)
 
-	if length and format_correctly:
-		return True
-	else:
-		return False
+    if format_correctly:
+        return True
+    else:
+        return False
 
-# futnction установить статус пользователя 
+def print_list(list_curr):
+    count = 0
+    for key in list_curr:
+        print(" {:<2s}:{} ".format(key, list_curr[key]), end='')
+        count += 1
+        if count % 8 == 0:
+            print()
 
 def detect_status(balance):
-	status = ''
-	if balance < 11111:
-		status = 'babyplay'
-	
-	elif balance >= 11111 and balance < 55555:
-		status = 'junior'
-	
-	elif balance >= 55555 and balance < 111111:
-		status = 'Segnior'
-	
-	elif balance >= 111111 and balance < 1111111:
-		status = 'VipSegnior'
-	
-	elif balance >= 1111111:
-		status = 'TraderKing'
-	return status
+    status = ''
+    if balance < 11111:
+        status = 'babyplay'
 
-# funtion распечатать пары
+    elif balance >= 11111 and balance < 55555:
+        status = 'junior'
 
-def print_pairs(pairs):
-	for i in range( len(pairs) ):
-		print(" {pair:<10s} ".format(pair=pairs[i]), end='')	
-		if (i + 1) % 4 == 0:
-			print()
+    elif balance >= 55555 and balance < 111111:
+        status = 'Segnior'
+
+    elif balance >= 111111 and balance < 1111111:
+        status = 'VipSegnior'
+
+    elif balance >= 1111111:
+        status = 'TraderKing'
+    return status
+
+def trim_tail(num, tail_size):
+    nstr = str(num).split('.')
+    tail = ''
+    for i in range(len(nstr[1])):
+        if i < tail_size:
+            tail += nstr[1][i]
+    return nstr[0] + '.' + tail
 
 def calculate_buy(user_info):
-	pass
+    min_order_size = user_info['order_size']
+    current_price  = user_info['current_price']
+    balance        = user_info['balance']
+
+    fixed_order_price = current_price * min_order_size
+    total_orders      = balance / fixed_order_price
+
+    min_price = float(input(' Введите нижнюю граница цены '))
+    step      = (current_price - min_price) / total_orders
+
+    count = 0
+    while True:
+        count += 1
+
+        if balance < fixed_order_price: break
+
+        user_info['balance'] = balance
+
+        current_price -= step
+        balance       -= fixed_order_price
+
+
+        message = '{:<5}{} цена: {:<10f} {} Сумма ордера: {:<10f} {} Количество криптовалюты: {:<10s} {}'.format(
+            count,
+            user_info['action'].upper(),
+            current_price,
+            user_info['use_currency'],
+            fixed_order_price,
+            user_info['use_currency'],
+            trim_tail(fixed_order_price / current_price, 4),
+            user_info['currency']
+
+        )
+        print(message)
 
 def calculate_sell(user_info):
-	pass
+    pass
+############################# END LIBRARY ################################
+msg = """
+ ПРИВЕТ, Я ФИНАНСОВЫЙ ПОМОШНИК.
 
-############################# END LIBRARY ###############################
+ Для генерации ордеров необходимо ввести:
+  1) Название торговой пары EMX/RUB
+  2) Сколько вы готовы инвестировать в валюту
+  3) Тип производимой операции buy/sell
+  4) Биржевую цену на данный момент
+  5) Количество криптовалюты в одном ордере
 
-bad_text  = ''
-bad_num   = 0
-
-# Список пар
-pairs = [
-	'EXM/RUB',  'SMART/RUB', 'XRP/RUB',
-	'ALGO/RUB', 'BTT/RUB',   'DAI/RUB',
-	'ONG/RUB',  'ONT/RUB',   'TRX/RUB',
-    'USDT/RUB', 'XLM/RUB',   'LSK/RUB',
-]
-
-# Иоформация о пользователе
-user_info = {
-	'pair_name':     '', # пара
-	'currency':      '', # что покупаем или продаем
-	'use_currency':  '', # за что покупаем
-	'status':        '', # статус пользователя
-	'action':        '', # действие sell/buy
-	'balance':        0, # общий баланс
-	'current_price':  0, # текущая цена вылюты
-	'min_deal'     :  0, # минимальная величина сделки
-	'min_total_deals':0, # min количество возможных сделок
-} 
-
-# Формируем сообщение
-message = """
- Привет, Я финансовый помошник. 
- Kоторый поможет сгенерировать ордера для биржи криптовалют.
-
- Для генерации ордеров необходимо будет ввести запрашиваемые
- программой данные.
-
- ЗАПРОС: 1
- Введите название торговой пары. 
+  Если валюта присутствует в списке, последнее поле оставте пустым.
 """
-# Выводим сообщение
-print(message)
+print(msg)
 
-#Вывод имеющихся пар
-print_pairs(pairs);
+print(' Список вылют:')
+print_list(list_currency)
 
-pair_name = input('\n\n Пара: ').strip().upper() or bad_text
+# ввод пары
+pair_name = input('\n 1) ').strip().upper() or bad_text
 
 if isvalid_pair(pair_name) and pair_name != bad_text:
-	if pair_name not in pairs:
-		pairs.append(pair_name)
+    val = pair_name.split('/')
+
+    user_info['pair_name']       = pair_name
+    user_info['currency']        = val[0]
+    user_info['use_currency']    = val[1]
+
+    if user_info['currency'] not in list_currency:
+        list_currency[user_info['currency']] = 0
 else:
-	raise TraderBotException('Введенная пара не корректна')
+    raise TraderBotException('Формат введенной пары не корректен')
+# конец ввода пары
 
-user_info['pair_name'] = pair_name
+# ввод баланса
+balance = int(input(' 2) ') or bad_num)
 
-# Разбиваем пару 
-break_pair = user_info['pair_name'].split('/')
+user_info['status'] = detect_status(balance)
 
-user_info['currency']      = break_pair[0] # вылюта  
-user_info['use_currency']  = break_pair[1] # вылюта которую используем для покупки
+if balance != bad_num:
+    user_info['balance'] = balance
+else:
+    raise TraderBotException('Баланс должен быть больше ' + bad_num)
+# конец ввода баланса
 
+# ввод действия
+action = input(' 3) ') or bad_text
 
-# Формируем сообщение
-message = """
- ЗАПРОС: 2
- Сколько вы готовы инвестировать в эту валютную пару в {currency}?
-""".format(currency=user_info['use_currency'])
-
-print(message)
-
-# Ввод суммы
-user_info['balance'] = int(input(' Сумма: ') or bad_num)
-
-# если данных нет
-if user_info['balance'] == bad_num:
-	raise TraderBotException('Сумма должна быть больше ' + str(user_info['balance']))
-
-# Определяем статус пользователя
-user_info['status'] = detect_status(user_info['balance'])
-
-message = """
- Ваш баланс: {balance} {currency}.
-
- ЗАПРОС: 3
- Тип операции: Покупка введите BUY  или buy
-               Продажа введите SELL или sell
-""".format(
-	balance=user_info['balance'],
-	currency=user_info['use_currency']
-	)
-
-# Вывод баланса и предложение на дальнейшие действия
-print(message)
-
-# Ввод действия buy или sell + удалить пробелы
-action = input(' Действие: ').strip().lower() or bad_text
-
-# если выбрана корректная опрерация
 if action == 'sell' or action == 'buy' and action != bad_text:
-	user_info['action'] = action
+    user_info['action'] = action
 else:
-	raise TraderBotException('Действие не корректно ' + action)
+    raise TraderBotException('Тип проиводимой операции не корректен ' + action)
+# конец ввода действия
 
-user_info['action'] = action
+# ввод текущей цены
+current_price = float(input(' 4) ') or bad_num)
 
-print('\n ЗАПРОС: 4\n Введите биржевую цену ', end='')
+if current_price != bad_num:
+    user_info['current_price'] = current_price
+else:
+    raise TraderBotException('Цена должна быть больше ' + bad_num)
+# конец ввода текущей цены
 
-# Ввод текущей цены buy или sell
+# ввод оличества криптовалюты если ее нет в списке просто нажать enter
+min_order_size = int(input(' 5) ') or bad_num)
+
+if min_order_size != bad_num:
+    list_currency[user_info['currency']] = min_order_size
+    user_info['order_size']              = min_order_size
+else:
+    min_order_size          = list_currency[user_info['currency']]
+    user_info['order_size'] = min_order_size
+# конец ввода оличества криптовалюты
+
+# вывод информации
+msg = """
+ Валютная пара: {}
+ Баланс:        {}
+ Статус:        {}
+ Тип операции:  {}
+ Биржевая цена: {} для покупки {}
+ Размер ордера: {}
+""".format(
+    user_info['pair_name'],
+    user_info['balance'],
+    user_info['status'],
+    user_info['action'],
+    user_info['current_price'], user_info['currency'],
+    user_info['order_size']
+)
+print(msg)
+
 if user_info['action'] == 'buy':
-	current_price = float(input('"ПОКУПКИ" на данный момент: ') or bad_num)
+    calculate_buy(user_info)
 
 if user_info['action'] == 'sell':
-	current_price = float(input('"ПРОДАЖИ" на данный момен: ') or bad_num)
+    calculate_sell(user_info)
 
-# если данных нет
-if current_price == bad_num:
-	raise TraderBotException('Цена должна быть больше ' + str(current_price))
 
-user_info['current_price'] = current_price
-
-# Формируем сообщение
-message = """
- Cобранные данные:
-  Вы хотите торговать в валютной паре - {pair}
-  Вы готовы инвестировать в неё       - {balance} {currency}
-  Ваш статус                          - {status}
-  ...
-""".format(
-		pair=user_info['pair_name'],
-		status=user_info['status'],
-		balance=user_info['balance'],
-		currency=user_info['use_currency'],
-)
-
-# Вывод введенной информации
-print(message)
-
-print('\n ЗАПРОС: 5\n Минимальная величина сделки \n')
-
-user_info['min_deal'] = float(input(' Размер сделки: ') or bad_num)
-
-# если данных нет
-if user_info['min_deal'] == bad_num:
-	raise TraderBotException('Минимальная величина должна быть больше ' + user_info['min_deal'])
-
-user_info['min_total_deals'] = int(user_info['balance'] // (user_info['current_price'] * user_info['min_deal']))
-
-if user_info['action'] == 'buy':
-	# цена одной сделки
-	fixed_order_price = user_info['balance'] / user_info['min_total_deals']
-
-	# количество условных едениц
-	# print('\n ЗАПРОС: 6\n Количество у.е в {}'.format(user_info['currency']))
-	# total_currency = float(input('\n Количество: ') or bad_num)
-
-	# минимальная стоимость условных едениц
-	# print('\n ЗАПРОС: 7\n Минимально дупустимая цена за {} {}'.format(total_currency, user_info['currency']))
-	# low_price      = float(input('\n Минимально дупустимая цена: ') or bad_num)
-	total_currency = 10
-	low_price = 0.01
-	current_price = user_info['current_price']
-
-	if current_price <= 10:
-		step = 0.01
-	if 0 < current_price <= 100:
-		step = 0.1
-	if 100 < current_price <= 1000:
-		step = 1
-
-	ideal_step = current_price / step
-
-	step_trade = (ideal_step / user_info['min_total_deals'])
-
-	newprice = current_price - step_trade
-	print(
-		' BUY: цена покупки: {:.2f} RUB  покупаю на: {:.2f} RUB {:.3f} EXM'.format(
-			newprice, fixed_order_price, fixed_order_price / newprice
-		)
-	)
-	user_info['balance'] -= fixed_order_price
-	print(' balance: ', user_info['balance'])
-	# ******************************************************************
-
-	print(
-		'\n',
-		'\n цена одной сделки: {} {}\n'.format(fixed_order_price, user_info['use_currency']),
-		'количество условных едениц {} {}\n'.format(total_currency, user_info['currency']),
-		'минимальная стоимость {} за {} {}\n'.format(low_price, total_currency, user_info['currency']),
-		'идельный шаг {}\n'.format(ideal_step),
-		'step trade {}\n'.format(step_trade),
-		'\n'
-	)
-	
-
-# print('\n\n Информация для отладки\n')
-# print(
-# 	' Волютная пара:               {}\n'.format(user_info['pair_name']),
-# 	'Валюта:                      {}\n'.format(user_info['currency']),
-# 	'Валюта для операций:         {}\n'.format(user_info['use_currency']),
-# 	'Статус пользователя:         {}\n'.format(user_info['status']),
-# 	'Действие buy/sell:           {}\n'.format(user_info['action']),
-# 	'Баланс:                      {} {}\n'.format(user_info['balance'], user_info['use_currency']),
-# 	'Текущая цена:                {}\n'.format(user_info['current_price']),
-# 	'Минимальна величина сделки:  {}\n'.format(user_info['min_deal']),
-# 	'Количество возможных сделок: {} ордеров\n'.format(user_info['min_total_deals']),
-# )
-
-for el in user_info:
-	print(' ' + el, ':', user_info[el])
+for key in user_info:
+    print(key, ':', user_info[key])
+print_list(list_currency)
