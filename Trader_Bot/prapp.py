@@ -1,7 +1,9 @@
-from re import match
 
-class TraderBotException(Exception):
-    pass
+from tblib.lib import (
+    isvalid_pair, print_list, detect_status, 
+    trim_tail, calculate_buy, calculate_sell,
+    TraderBotException
+)
 
 bad_text = ''
 bad_num  = 0
@@ -12,87 +14,7 @@ list_currency = {
 }
 
 user_info = {}
-############################# LIBRARY ###################################
-def isvalid_pair(pair):
-    format_correctly = match(r'[A-Z/]{6,20}', pair)
 
-    if format_correctly:
-        return True
-    else:
-        return False
-
-def print_list(list_curr):
-    count = 0
-    for key in list_curr:
-        print(" {:<2s}:{} ".format(key, list_curr[key]), end='')
-        count += 1
-        if count % 8 == 0:
-            print()
-
-def detect_status(balance):
-    status = ''
-    if balance < 11111:
-        status = 'babyplay'
-
-    elif balance >= 11111 and balance < 55555:
-        status = 'junior'
-
-    elif balance >= 55555 and balance < 111111:
-        status = 'Segnior'
-
-    elif balance >= 111111 and balance < 1111111:
-        status = 'VipSegnior'
-
-    elif balance >= 1111111:
-        status = 'TraderKing'
-    return status
-
-def trim_tail(num, tail_size):
-    nstr = str(num).split('.')
-    tail = ''
-    for i in range(len(nstr[1])):
-        if i < tail_size:
-            tail += nstr[1][i]
-    return nstr[0] + '.' + tail
-
-def calculate_buy(user_info):
-    min_order_size = user_info['order_size']
-    current_price  = user_info['current_price']
-    balance        = user_info['balance']
-
-    fixed_order_price = current_price * min_order_size
-    total_orders      = balance / fixed_order_price
-
-    min_price = float(input(' Введите нижнюю граница цены '))
-    step      = (current_price - min_price) / total_orders
-
-    count = 0
-    while True:
-        count += 1
-
-        if balance < fixed_order_price: break
-
-        user_info['balance'] = balance
-
-        message = '{:<5}{} цена: {:<10f} {} Сумма ордера: {:<10f} {} Количество криптовалюты: {:<10s} {}'.format(
-            count,
-            user_info['action'].upper(),
-            current_price,
-            user_info['use_currency'],
-            fixed_order_price,
-            user_info['use_currency'],
-            trim_tail(fixed_order_price / current_price, 4),
-            user_info['currency']
-
-        )
-
-        current_price -= step
-        balance       -= fixed_order_price
-        print(message)
-
-def calculate_sell(user_info):
-    pass
-############################# END LIBRARY ################################
 msg = """
  ПРИВЕТ, Я ФИНАНСОВЫЙ ПОМОШНИК.
 
@@ -108,7 +30,6 @@ msg = """
 """
 print(msg)
 
-print(' Список вылют:')
 print_list(list_currency)
 
 # ввод пары
@@ -117,9 +38,9 @@ pair_name = input('\n 1) ').strip().upper() or bad_text
 if isvalid_pair(pair_name) and pair_name != bad_text:
     val = pair_name.split('/')
 
-    user_info['pair_name']       = pair_name
-    user_info['currency']        = val[0]
-    user_info['use_currency']    = val[1]
+    user_info['pair_name']    = pair_name
+    user_info['currency']     = val[0]
+    user_info['use_currency'] = val[1]
 
     if user_info['currency'] not in list_currency:
         list_currency[user_info['currency']] = 0
@@ -139,7 +60,7 @@ else:
 # конец ввода баланса
 
 # ввод действия
-action = input(' 3) ') or bad_text
+action = input(' 3) ').strip().lower() or bad_text
 
 if action == 'sell' or action == 'buy' and action != bad_text:
     user_info['action'] = action
@@ -186,12 +107,14 @@ msg = """
 print(msg)
 
 if user_info['action'] == 'buy':
-    calculate_buy(user_info)
+    min_price = float(input(' Введите нижнюю граница цены '))
+    calculate_buy(user_info, min_price)
 
 if user_info['action'] == 'sell':
-    calculate_sell(user_info)
+    max_price = float(input(' Введите верхнюю граница цены '))
+    calculate_sell(user_info, max_price)
 
 
 for key in user_info:
-    print(key, ':', user_info[key])
+    print('', key, ':', user_info[key])
 print_list(list_currency)
