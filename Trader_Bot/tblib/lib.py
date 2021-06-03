@@ -11,7 +11,7 @@ def isvalid_pair(pair):
     else:
         return False
 
-def print_list(list_curr):
+def print_currency_list(list_curr):
     count = 0
     print(' Список вылют:')
     for key in list_curr:
@@ -20,7 +20,7 @@ def print_list(list_curr):
         if count % 4 == 0:
             print()
 
-def detect_status(balance):
+def set_status(balance):
     status = ''
     if balance < 11111:
         status = 'babyplay'
@@ -46,69 +46,157 @@ def trim_tail(num, tail_size):
             tail += nstr[1][i]
     return nstr[0] + '.' + tail
 
-def calculate_buy(user_info, min_price):
-    min_order_size = user_info['order_size']
-    current_price  = user_info['current_price']
-    balance        = user_info['balance']
+def calculate_buy(user_info):
+    # цена одного ордера
+    user_info['order_price'] = user_info['current_price'] * user_info['order_size']
+    # колличество ордеров
+    total_orders = user_info['balance'] / user_info['order_price']
+    user_info['total_orders'] = int(total_orders)
 
-    fixed_order_price = current_price * min_order_size
-    total_orders      = balance / fixed_order_price
-
-    step      = (current_price - min_price) / total_orders
+    step = (user_info['current_price'] - user_info['min_price']) / total_orders
+    current_price = user_info['current_price']
 
     count = 0
-    while True:
+    price = 0
+    real_price = 0
+    while int(total_orders) != 0:
         count += 1
+        # колличество вылюты
+        totat_currency = user_info['order_price'] / current_price
+        # комиссия
+        comission = user_info['order_size'] * user_info['comission'] / 100
+        # стоимость одного ордера + комиссия
+        user_info['real_order_price'] = user_info['order_price'] + comission
 
-        if balance < fixed_order_price: break
+        real_price += user_info['real_order_price']
+        # итоговая сумм с учетом комиссии
+        user_info['real_price'] = real_price
+        # итоговая сумм без комиссии
+        price += user_info['order_price']
+        user_info['price'] = price
 
-        user_info['balance'] = balance
-
-        message = '{:<5}{} цена: {:<10f} {} Сумма ордера: {:<10f} {} Количество криптовалюты: {:<10s} {}'.format(
+        message = ' {:<3}{} цена: {:<10f} {} Сумма ордера: {:<10f} {} Количество криптовалюты: {:<10f} {}'.format(
             count,
-            user_info['action'].upper(),
+            user_info['action'],
             current_price,
             user_info['use_currency'],
-            fixed_order_price,
+            user_info['real_order_price'],
             user_info['use_currency'],
-            trim_tail(fixed_order_price / current_price, 4),
+            totat_currency,
             user_info['currency']
 
         )
 
-        current_price -= step
-        balance       -= fixed_order_price
         print(message)
+        
+        current_price -= step
+        total_orders  -= 1
 
-def calculate_sell(user_info, max_price):
-    min_order_size = user_info['order_size']
-    current_price  = user_info['current_price']
-    balance        = user_info['balance']
-    
-    total_real_deals  = balance // (current_price * min_order_size)
-    total_currency    = balance / current_price
-    total_sell_orders = total_currency / min_order_size
+def calculate_sell(user_info):
+    # колличество валюты
+    total_currency = user_info['balance'] / user_info['current_price']
+    user_info['total_currency'] = total_currency
 
-    step = (max_price - current_price) / total_sell_orders
+    # количество ордеров
+    total_orders = total_currency / user_info['order_size']
+    user_info['total_orders'] = int(total_orders)
+
+    step = (user_info['max_price'] - user_info['current_price']) / total_orders
+    current_price = user_info['current_price']
+
+    # цена за все ордера
+    user_info['price'] = total_currency * current_price
     
     count = 0
-    while True:
+    profit = 0
+    while int(total_orders) != 0:
         count += 1
 
-        if total_sell_orders <= 0: break
-        
-        message = '{:<5}{} Количество валюты: {:<10f} {} Продаём за: {:<10f} {} На сумму: {:<10f} {}'.format(
+        message = ' {:<3}{} Количество валюты: {:<10f} {} Продаём за: {:<10f} {} На сумму: {:<10f} {}'.format(
             count,
             user_info['action'],
             user_info['order_size'],
             user_info['currency'],
             current_price,
             user_info['use_currency'],
-            min_order_size * current_price,
+            user_info['order_size'] * current_price,
             user_info['use_currency']
         )
 
         print(message)
 
         current_price += step
-        total_sell_orders = int(total_sell_orders) - 1
+        profit += (user_info['order_size'] * current_price)
+        total_orders -= 1
+    
+    user_info['profit'] = [profit, profit - user_info['price']]
+
+def print_buy_info(user_info):
+    message = '\n Цена ордера : {} 1/{}'.format(
+        user_info['pair_name'],
+        user_info['order_price'],
+    )
+    print(message)
+    message = ' Цена ордеров: {} {}/{}'.format(
+        user_info['pair_name'],
+        user_info['total_orders'],
+        user_info['price'],
+    )
+    print(message)
+    message = ' Цена ордера : {} 1/{} + {}% комиссия'.format(
+        user_info['pair_name'],
+        user_info['real_order_price'],
+        user_info['comission'],
+    )
+    print(message)
+    message = ' Цена ордеров: {} {}/{} + {}% комиссия'.format(
+        user_info['pair_name'],
+        user_info['total_orders'],
+        user_info['real_price'],
+        user_info['comission'],
+    )
+    print(message)
+    print(' Баланс:', user_info['balance'], user_info['use_currency'])
+    print(' Цена:', user_info['real_price'], user_info['use_currency'])
+
+def print_sell_info(user_info):
+    message = '\n По рыночной цене {} {} Куплено {} {} На сумму {} {}'.format(
+        user_info['current_price'],
+        user_info['use_currency'],
+        user_info['total_currency'],
+        user_info['currency'],
+        user_info['price'],
+        user_info['use_currency']
+    )
+    print(message)
+    message = ' Количество ордеров {} на сумму {} {}'.format(
+        user_info['total_orders'],
+        user_info['profit'][0],
+        user_info['use_currency'],
+    )
+    print(message)
+    message = ' Профицит для заработка составил: {} {}'.format(
+        user_info['profit'][1],
+        user_info['use_currency'],
+    )
+    print(message)
+
+def print_info(user_info):
+    msg = """
+ Валютная пара: {}
+ Баланс:        {}
+ Статус:        {}
+ Тип операции:  {}
+ Биржевая цена: {} для покупки {}
+ Размер ордера: {}
+ Комиссия       {}
+    """.format(
+    user_info['pair_name'],
+    user_info['balance'],
+    user_info['status'],
+    user_info['action'],
+    user_info['current_price'], user_info['currency'],
+    user_info['order_size'],
+    user_info['comission'],
+)
+    print(msg)
