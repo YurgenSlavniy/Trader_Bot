@@ -1,4 +1,5 @@
-
+import sys
+from time import sleep  
 from tblib.lib import (
     isvalid_pair, set_status, trim_tail, 
     calculate_buy, calculate_sell, print_info, 
@@ -9,16 +10,21 @@ from tblib.lib import (
 bad_text = ''
 bad_num  = 0
 
-currency_list = {
-    'EMX': 10, 'XRP': 20, 'DAI': 30, 'XLM': 40,
-    'LSK': 50, 'ONG': 60, 'ONT': 70, 'TRX': 80,
-}
+pairs = [
+    'EXM/RUB',  'SMART/RUB', 'XRP/RUB',
+    'ALGO/RUB', 'BTT/RUB',   'DAI/RUB',
+    'ONG/RUB',  'ONT/RUB',   'TRX/RUB',
+    'USDT/RUB', 'XLM/RUB',   'LSK/RUB',
+]
 
 user_info = {
     'pair_name':    '',
     'currency':     '',    # покупаемая крипто-валюта
     'use_currency': '',    # валюта для покупки крипто-валюты
-    'action':       '',    # действие пользователя
+    'ratio_price': {       # соотношение цен
+        'buy':  0,
+        'sell': 0,
+    },    
     'status':       '',    # статус пользователя
     'balance':          0, # баланс
     'order_size':       0, # размер одного ордера
@@ -35,28 +41,29 @@ user_info = {
 }
 
 msg = """
- ПРИВЕТ, Я ФИНАНСОВЫЙ ПОМОШНИК.
+ Привет, Я финансовый помошник. 
+ Kоторый поможет сгенерировать ордера для биржи криптовалют.
 
- Для генерации ордеров необходимо ввести:
-  1) Название торговой пары EMX/RUB.
-  2) Сколько вы готовы инвестировать в валюту.
-  3) Тип производимой операции buy/sell.
-  4) Биржевую цену на данный момент.
-  5) Количество криптовалюты в одном ордере:
-        *количество приведенно в списке валют
-        *оставить по умолчанию Enter
-        *для изменения ввести новое количество
-        *если валюты нет в списке, обязательно ввести количество
-  6) Комиссию.
-  7) Нижнюю или верхнюю границу цены.
+ Для генерации ордеров необходимо будет ввести запрашиваемые
+ программой данные.
+
+ 1) Название торговый пары
+ 2) Сколько вы готовы инвестировать в рублях
+ 3) Биржевой курс на данный момент времени
+ 4) Минимальную цену покупки
+ 5) Максимальную цену продажи
+ 6) Выбирите соотношение BUY/SELL 0/0
+ 7) Минимальный ордер
 """
 print(msg)
+print_currency_list(pairs, 5)
 
-# print_currency_list не владеет -> currency_list
-print_currency_list(currency_list)
+print('\n Введите данные в одну строку через пробел:\n')
+
+options = input(' > ').split()
 
 # ввод пары
-pair_name = input('\n 1) Пара: ').strip().upper() or bad_text
+pair_name = options.pop(0).strip().upper()
 
 if isvalid_pair(pair_name) and pair_name != bad_text:
     val = pair_name.split('/')
@@ -65,92 +72,105 @@ if isvalid_pair(pair_name) and pair_name != bad_text:
     user_info['currency']     = val[0]
     user_info['use_currency'] = val[1]
 
-    if user_info['currency'] not in currency_list:
-        currency_list[user_info['currency']] = 0
+    if pair_name not in pairs:
+        pairs.append(pair_name)
 else:
     raise TraderBotException('Формат введенной пары не корректен')
 # конец ввода пары
 
 # ввод баланса
-balance = int(input(' 2) Сумма: ') or bad_num)
+balance = int(options.pop(0))
 
 user_info['status'] = set_status(balance)
 
-if balance != bad_num:
-    user_info['balance'] = balance
-else:
+if balance <= bad_num:
     raise TraderBotException('Баланс должен быть больше ' + bad_num)
+else:
+    user_info['balance'] = balance
 # конец ввода баланса
 
-# ввод действия
-action = input(' 3) Действие: ').strip().lower() or bad_text
-
-if action == 'sell' or action == 'buy' and action != bad_text:
-    user_info['action'] = action
-else:
-    raise TraderBotException('Тип проиводимой операции не корректен ' + action)
-# конец ввода действия
-
 # ввод текущей цены
-current_price = float(input(' 4) Цена: ') or bad_num)
+current_price = float(options.pop(0))
 
-if current_price != bad_num:
-    user_info['current_price'] = current_price
-else:
+if current_price <= bad_num:
     raise TraderBotException('Цена должна быть больше ' + bad_num)
+else:
+    user_info['current_price'] = current_price
 # конец ввода текущей цены
 
-# ввод оличества криптовалюты
-order_size = int(input(' 5) Количество: ') or bad_num)
-
-if order_size != bad_num:
-    currency_list[user_info['currency']] = order_size
-    user_info['order_size']              = order_size
+min_price = float(options.pop(0))
+if min_price <= bad_num:
+    raise TraderBotException('Минимальная граница должна быть больше ' + bad_num)
 else:
-    order_size = currency_list[user_info['currency']]
+    user_info['min_price'] = min_price
+
+
+max_price = float(options.pop(0))
+if max_price <= bad_num:
+    raise TraderBotException('Максимальная граница должна быть больше ' + bad_num)
+else:
+    user_info['max_price'] = max_price
+
+# ввод соотношения цен
+ratio_price = options.pop(0)
+
+arr = ratio_price.split('/')
+
+buy  = int(arr[0])
+sell = int(arr[1])
+
+# if buy == bad_num or sell == bad_num:
+#     raise TraderBotException(f'Соотношение цен не корректно {buy}/{sell}')
+
+user_info['ratio_price'] = {
+    'buy': user_info['balance'] * (buy / 100),
+    'sell':user_info['balance'] * (sell / 100),
+}
+# конец соотношения цен
+
+# ввод минимальный размер ордера
+order_size = int(options.pop(0))
+
+if order_size <= bad_num:
+    raise TraderBotException('Размер ордера должен быть больше ' + bad_num)
+else:
     user_info['order_size'] = order_size
-# конец ввода оличества криптовалюты
+# конец минимальный размер ордера
 
 # ввод комиссии
-comission = float(input(' 6) Комиссия: ') or 0)
-
-if comission != bad_num:
-    user_info['comission'] = comission
-else:
-    raise TraderBotException('Комиссия должна быть больше ' + bad_num)
+user_info['comission'] = 0
 # конец ввода комиссии
 
-if user_info['action'] == 'buy':
-    min_price = float(input(' 7) Минимальная цена: ') or bad_num) # ?
-    if min_price != bad_num:
-        user_info['min_price'] = min_price
-    else:
-        raise TraderBotException('Минимальная граница должна быть больше ' + bad_num)
+print('\n Будет произведена генерация ордеров для торговой пары {}\n'
+      ' Ваш баланс {} RUB\n'
+      ' рыночная цена {} {}\n'
+      ' Ордера будут сгенерированы на участке цены от {} до {}\n'
+      .format(pair_name, balance, current_price, user_info['use_currency'], min_price, max_price)
+)
 
-if user_info['action'] == 'sell':
-    max_price = float(input(' 7) Максимальная цена: ') or bad_num) # ?
-    if max_price != bad_num:
-        user_info['max_price'] = max_price
-    else:
-        raise TraderBotException('Максимальная граница должна быть больше ' + bad_num)
+str = '.'
+print(' Подождите ', end='')
+sys.stdout.flush()
+for i in range(11):
+    sleep(1)
+    print(str, end='')
+    sys.stdout.flush()
 
-# вывод информации
-# print_info не владеет -> user_info
-print_info(user_info)
-
-if user_info['action'] == 'buy':
-    # calculate_buy владеет -> user_info
+print('\n\n')
+# emx/rub 10000 10 1 20 40/60 10
+if int(user_info['ratio_price']['buy']):
+    print('*' * 80)
     calculate_buy(user_info)
-    # print_buy_info не владеет -> user_info
     print_buy_info(user_info)
 
-if user_info['action'] == 'sell':
-    # calculate_sell владеет -> user_info
+print('*' * 80)
+
+if int(user_info['ratio_price']['sell']):
     calculate_sell(user_info)
-    # print_sell_info не владеет -> user_info
     print_sell_info(user_info)
+    print('*' * 80)
 
 
-# for key in user_info:
-#     print('', key, ':', user_info[key])
-# print_list(currency_list)
+for key in user_info:
+    print('', key, ':', user_info[key])
+# print_currency_list(currency_list)

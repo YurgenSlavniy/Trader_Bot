@@ -11,14 +11,17 @@ def isvalid_pair(pair):
     else:
         return False
 
-def print_currency_list(list_curr):
-    count = 0
+def print_currency_list(pairs, size_line):
     print(' Список вылют:')
-    for key in list_curr:
-        print(" {:<2s}:{} ".format(key, list_curr[key]), end='')
-        count += 1
-        if count % 4 == 0:
+    size_line += 1
+    sep = 0
+    for i in range(len(pairs)):
+        sep += 1
+        if sep != size_line:
+            print(' {:<10} '.format(pairs[i]), end='')
+        if sep == size_line:
             print()
+            sep = 0
 
 def set_status(balance):
     status = ''
@@ -50,7 +53,8 @@ def calculate_buy(user_info):
     # цена одного ордера
     user_info['order_price'] = user_info['current_price'] * user_info['order_size']
     # колличество ордеров
-    total_orders = user_info['balance'] / user_info['order_price']
+    # total_orders = user_info['balance'] / user_info['order_price']
+    total_orders = user_info['ratio_price']['buy'] / user_info['order_price']
     user_info['total_orders'] = int(total_orders)
 
     step = (user_info['current_price'] - user_info['min_price']) / total_orders
@@ -75,9 +79,8 @@ def calculate_buy(user_info):
         price += user_info['order_price']
         user_info['price'] = price
 
-        message = ' {:<3}{} цена: {:<10f} {} Сумма ордера + %: {:<10f} {} Количество криптовалюты: {:<10f} {}'.format(
+        message = ' {:<4}BUY цена: {:<10f} {} Сумма ордера + %: {:<10f} {} Количество криптовалюты: {:<10f} {}'.format(
             count,
-            user_info['action'],
             current_price,
             user_info['use_currency'],
             user_info['real_order_price'],
@@ -94,7 +97,8 @@ def calculate_buy(user_info):
 
 def calculate_sell(user_info):
     # колличество валюты
-    total_currency = user_info['balance'] / user_info['current_price']
+    # total_currency = user_info['balance'] / user_info['current_price']
+    total_currency = user_info['ratio_price']['sell'] / user_info['current_price']
     user_info['total_currency'] = total_currency
 
     # количество ордеров
@@ -112,9 +116,8 @@ def calculate_sell(user_info):
     while int(total_orders) != 0:
         count += 1
 
-        message = ' {:<3}{} Количество валюты: {:<10f} {} Продаём за: {:<10f} {} На сумму: {:<10f} {}'.format(
+        message = ' {:<4}SELL Количество валюты: {:<10f} {} Продаём за: {:<10f} {} На сумму: {:<10f} {}'.format(
             count,
-            user_info['action'],
             user_info['order_size'],
             user_info['currency'],
             current_price,
