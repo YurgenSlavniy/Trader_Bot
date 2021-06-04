@@ -75,7 +75,7 @@ def calculate_buy(user_info):
         price += user_info['order_price']
         user_info['price'] = price
 
-        message = ' {:<3}{} цена: {:<10f} {} Сумма ордера: {:<10f} {} Количество криптовалюты: {:<10f} {}'.format(
+        message = ' {:<3}{} цена: {:<10f} {} Сумма ордера + %: {:<10f} {} Количество криптовалюты: {:<10f} {}'.format(
             count,
             user_info['action'],
             current_price,
