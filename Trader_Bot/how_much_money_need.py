@@ -65,10 +65,10 @@ total_buy_money = 0
 order_price = price # цена первого ордера равна рыночной цене
 min_order_value = min_deal + (min_deal * trade_percent / 100)
 while order_price >= min_price:
-      order_price = order_price - trade_step
-      buy_money = min_order_value * order_price
-      total_buy_money = total_buy_money + buy_money
-      print('BUY  price: {} RUB   количество: {} EXM на сумму: {} {}'.format(order_price, min_order_value, buy_money, use_currency ))
+      order_price = round(order_price - trade_step, 2)
+      buy_money = round(min_order_value * order_price, 2)
+      total_buy_money = round(total_buy_money + buy_money, 2)
+      print('BUY  цена: {} RUB   количество: {} EXM на сумму: {} {}'.format(order_price, min_order_value, buy_money, use_currency ))
 
 print('\nБудет выставлено {} BUY ордеров\nДля этого вам понадобится сумма: {} RUB'.format(buy_orders, total_buy_money, ))
 print('\nдля продолжения нажмите ентер')
@@ -77,17 +77,17 @@ enter = input('')
 sell_value = max_price - price # вычислили отрезок на котором расставаляем SELL ордера
 sell_orders = int(sell_value / trade_step)  # вычисляем сколько ордеров с указанным шагом мы можем выставить на SELL отрезке цены
 # вычисляем какая сумма денег понадобится на расстановку всех SELL ордеров с учётом торговой комиссии
-total_sell_money = sell_orders * (min_deal + (min_deal * trade_percent / 100)) * price
+total_sell_money = round(sell_orders * (min_deal + (min_deal * trade_percent / 100)) * price, 2)
 profit_sell_money = 0
-buy_for_sale = sell_orders * (min_deal + (min_deal * trade_percent / 100))
+buy_for_sale = round(sell_orders * (min_deal + (min_deal * trade_percent / 100)), 2)
 
 sell_order_price = price # цена первого ордера равна рыночной цене
 min_order_value = min_deal + (min_deal * trade_percent / 100)
 while sell_order_price <= max_price:
-      sell_order_price = sell_order_price + trade_step
-      sell_money = min_order_value * sell_order_price
-      profit_sell_money = profit_sell_money + sell_money
-      print('BUY  price: {} RUB   количество: {} EXM на сумму: {} {}'.format(sell_order_price, min_order_value, sell_money, use_currency ))
+      sell_order_price = round(sell_order_price + trade_step, 2)
+      sell_money = round(min_order_value * sell_order_price, 2)
+      profit_sell_money = round(profit_sell_money + sell_money, 2)
+      print('BUY  цена: {} RUB   количество: {} EXM на сумму: {} {}'.format(sell_order_price, min_order_value, sell_money, use_currency ))
 print('\nБудет выставлено {} sell ордеров\n Для этого по рыночной цене {} RUB будет куплено {} EXM на сумму: {} RUB\n ордера на продажу будут выставлены на общую сумму {} RUB'.format(sell_orders, price, buy_for_sale, total_sell_money, profit_sell_money))
 total_money = total_sell_money + total_buy_money
 print('Общая сумма которая необходима для расстановки BUY и SELL ордеров в интервале цены от {} до {} RUB с шагом {} RUB -->: {} {}'.format(min_price, max_price, trade_step, total_money, use_currency))
@@ -117,7 +117,9 @@ print('Общая сумма которая необходима для расс
 # Для этого вам понадобится сумма: 137.865 RUB
 
 
-# дальнейшие задачи по этому коду: вывод вместо длинных дробных частей 2 знака после запятой.
+# дальнейшие задачи по этому коду: вывод вместо длинных дробных частей 2 знака после запятой. --
+# -- функция round(число, 2 (сколько знаков после запятой))
+
 # доработать алгоритм расстановки, последний ордер отрицательного значения в buy растановке при тестировании
 # в целом всё отрабатывает неплохо в этом модуле
 
