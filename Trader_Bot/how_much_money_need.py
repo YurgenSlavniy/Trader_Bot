@@ -55,24 +55,33 @@ trade_step = input('Запрос 4: Введите шаг с которым ну
 trade_step = float(trade_step)
 
 # После ввода данных выводим сообщение с некоторыми расчётами пользователю, для подтверждения готовности генерации.
-print('\nПоехали!\n')
+print('\nПоехали!')
 # для генерации BUY ордеров:
 buy_value = price - min_price # вычислили отрезок на котором расставаляем BUY ордера . [min_price, price]
 buy_orders = int(buy_value / trade_step) # вычисляем сколько ордеров с указанным шагом мы можем выставить на BUY отрезке цены
 # вычисляем какая сумма денег понадобится на расстановку всех BUY ордеров с учётом торговой комиссии
 buy_money = 0
 total_buy_money = 0
+count = 0
 order_price = price # цена первого ордера равна рыночной цене
 min_order_value = min_deal + (min_deal * trade_percent / 100)
+orders_generation = []
 while order_price >= min_price:
-      order_price = round(order_price - trade_step, 2)
-      buy_money = round(min_order_value * order_price, 2)
-      total_buy_money = round(total_buy_money + buy_money, 2)
-      print('BUY  цена: {} RUB   количество: {} EXM на сумму: {} {}'.format(order_price, min_order_value, buy_money, use_currency ))
+    count += 1
+    order_price = round(order_price - trade_step, 2)
+    buy_money = round(min_order_value * order_price, 2)
+    total_buy_money = round(total_buy_money + buy_money, 2)
+    orders_generation.append('{}) BUY  цена: {} RUB   количество: {} EXM на сумму: {} {}'.format(count, order_price, min_order_value, buy_money, use_currency ))
+
 
 print('\nБудет выставлено {} BUY ордеров\nДля этого вам понадобится сумма: {} RUB'.format(buy_orders, total_buy_money, ))
-print('\nдля продолжения нажмите ентер')
-enter = input('')
+enter = input('\nПроизвести генерацию ордеров? (ДА/НЕТ): ')
+enter = enter.upper()
+if enter == 'ДА':
+    for order in orders_generation:
+        print(order)
+
+print('...произвожу расчёт для SELL ордеров...')
 # для генерации SELL ордеров:
 sell_value = max_price - price # вычислили отрезок на котором расставаляем SELL ордера
 sell_orders = int(sell_value / trade_step)  # вычисляем сколько ордеров с указанным шагом мы можем выставить на SELL отрезке цены
@@ -83,15 +92,24 @@ buy_for_sale = round(sell_orders * (min_deal + (min_deal * trade_percent / 100))
 
 sell_order_price = price # цена первого ордера равна рыночной цене
 min_order_value = min_deal + (min_deal * trade_percent / 100)
+count = 0
+orders_generation = []
 while sell_order_price <= max_price:
-      sell_order_price = round(sell_order_price + trade_step, 2)
-      sell_money = round(min_order_value * sell_order_price, 2)
-      profit_sell_money = round(profit_sell_money + sell_money, 2)
-      print('BUY  цена: {} RUB   количество: {} EXM на сумму: {} {}'.format(sell_order_price, min_order_value, sell_money, use_currency ))
-print('\nБудет выставлено {} sell ордеров\n Для этого по рыночной цене {} RUB будет куплено {} EXM на сумму: {} RUB\n ордера на продажу будут выставлены на общую сумму {} RUB'.format(sell_orders, price, buy_for_sale, total_sell_money, profit_sell_money))
+    count += 1
+    sell_order_price = round(sell_order_price + trade_step, 2)
+    sell_money = round(min_order_value * sell_order_price, 2)
+    profit_sell_money = round(profit_sell_money + sell_money, 2)
+    orders_generation.append('{}) SELL  цена: {} RUB   количество: {} EXM на сумму: {} {}'.format(count, sell_order_price, min_order_value, sell_money, use_currency ))
+print('\nБудет выставлено {} sell ордеров\n Для этого по рыночной цене {} RUB будет куплено {} EXM на сумму: {} RUB'.format(sell_orders, price, buy_for_sale, total_sell_money))
 total_money = total_sell_money + total_buy_money
 print('Общая сумма которая необходима для расстановки BUY и SELL ордеров в интервале цены от {} до {} RUB с шагом {} RUB -->: {} {}'.format(min_price, max_price, trade_step, total_money, use_currency))
-
+print(f'\nордера на продажу будут выставлены на общую сумму {profit_sell_money} RUB')
+enter = input('\nПроизвести генерацию ордеров? (ДА/НЕТ): ')
+enter = enter.upper()
+if enter == 'ДА':
+    for order in orders_generation:
+        print(order)
+print('end')
 # работает не совсем корректно,и это нужно будет поправить! КАК УБРАТЬ ПОСЛЕДНЮЮ СТРОЧКУ С МИНУСОМ
 # (проверка на целочисленное деление,
 # если делится считаем как считали,
@@ -117,9 +135,10 @@ print('Общая сумма которая необходима для расс
 # Для этого вам понадобится сумма: 137.865 RUB
 
 
-# дальнейшие задачи по этому коду: вывод вместо длинных дробных частей 2 знака после запятой. --
-# -- функция round(число, 2 (сколько знаков после запятой))
+# СДЕЛАНО! [дальнейшие задачи по этому коду: вывод вместо длинных дробных частей 2 знака после запятой. --
+# -- функция round(число, 2 (сколько знаков после запятой))] СДЕЛАНО!
+# СДЕЛАНО! [генерация ордеров произойдёт после того как программа задаст пользователю вопрос, а до генерации будут выведены данные:
+# Будет выставлено {} BUY ордеров
+# Для этого вам понадобится сумма: {} RUB] СДЕЛАНО!
 
-# доработать алгоритм расстановки, последний ордер отрицательного значения в buy растановке при тестировании
-# в целом всё отрабатывает неплохо в этом модуле
-
+# [доработать алгоритм расстановки, последний ордер отрицательного значения в buy растановке при тестировании]
